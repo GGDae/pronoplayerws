@@ -1,0 +1,12 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URL:${app.mongodb.default-uri}}
+      database: ${MONGO_DATABASE:${app.mongodb.default-database}}
+app:
+  mongodb:
+    default-uri: mongodb://localhost
+    default-database: admin
+  twitch:
+    client-id: ${TWITCH_CLIENTID}
+    client-secret: ${TWITCH_SECRET}
