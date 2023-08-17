@@ -24,4 +24,5 @@ public class User {
     private String favouriteTeam;
     private String profileImageUrl;
     private List<Group> groups;
+    private List<Badge> badges;
 }

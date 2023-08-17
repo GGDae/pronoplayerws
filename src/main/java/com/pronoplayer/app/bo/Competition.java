@@ -18,6 +18,7 @@ public class Competition {
     private String name;
     private String year;
     private String split;
+    private String tournamentStartDate;
     private String leagueId;
     private String tournamentId;
     private boolean current;

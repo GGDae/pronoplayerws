@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -56,7 +57,7 @@ public class CompetitionServiceImpl implements CompetitionService {
     }
     
     @Transactional
-    @Scheduled(fixedRate = 1200000)
+    @Scheduled(fixedRate = 600000)
     public void retrieveStandings() {
         List<Competition> currentLeagues = competitionRepository.findByCurrent(true).orElse(null);
         if (currentLeagues != null && currentLeagues.size() > 0) {
@@ -90,7 +91,8 @@ public class CompetitionServiceImpl implements CompetitionService {
     
     @Override
     @Transactional
-    @Scheduled(fixedRate = 600000)
+    @Scheduled(fixedRate = 300000)
+    @CacheEvict(value = "ranking", allEntries = true)
     public void loadFromLolesports() {
         List<Competition> currentLeagues = competitionRepository.findByCurrent(true).orElse(null);
         if (currentLeagues != null && currentLeagues.size() > 0) {
@@ -108,95 +110,93 @@ public class CompetitionServiceImpl implements CompetitionService {
                             if ("match".equals(event.getType())) {
                                 DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                                // DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:sss'Z'");
-                                // LocalDateTime ldt;
-                                // try {
-                                    //     ldt = LocalDateTime.parse(event.getStartTime(), formatter).atZone(ZoneId.systemDefault()).toLocalDateTime();
-                                    // } catch (DateTimeParseException e) {
-                                        //     ldt = LocalDateTime.parse(event.getStartTime(), formatter2).atZone(ZoneId.systemDefault()).toLocalDateTime();
-                                        // }
-                                        // final String pdDate = ldt.format(dayFormatter);
-                                        LocalDateTime ldt = event.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-                                        String period = getPeriod(ldt.format(formatter));
-                                        Optional<PronoWeek> pronoWeekOpt = pronoWeekRepository.findFirstByCompetitionIdAndBlockAndPeriod(league.getId(), event.getBlockName(), period);
-                                        PronoWeek pronoWeek;
-                                        if (pronoWeekOpt.isEmpty()) {
-                                            pronoWeek = new PronoWeek();
-                                            pronoWeek.setCompetitionId(league.getId());
-                                            LocalDateTime ldtStart = ldt.minusDays(5);
-                                            LocalDateTime ldtEnd = ldt.plusDays(2);
-                                            pronoWeek.setStartDate(ldtStart.format(formatter));
-                                            pronoWeek.setEndDate(ldtEnd.format(formatter));
-                                            pronoWeek.setLockDate(ldt.format(formatter));
-                                            pronoWeek.setBlock(event.getBlockName());
-                                            pronoWeek.setPeriod(period);
-                                            List<PronoDay> pronoDays = new ArrayList<>();
-                                            pronoWeek.setPronoDays(pronoDays);
-                                        } else {
-                                            pronoWeek = pronoWeekOpt.get();
-                                        }
-                                        Match m = event.getMatch();
-                                        m.setDateTime(event.getStartTime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime().format(formatter));
-                                        // m.setDateTime(LocalDateTime.parse(event.getStartTime()).atZone(ZoneId.of("UTC")).toLocalDateTime().format(formatter));
-                                        List<String> scores = new ArrayList<>();
-                                        for(Team team : m.getTeams()) {
-                                            if (team.getResult() != null) {
-                                                scores.add("" + team.getResult().getGameWins());
-                                                if ("win".equalsIgnoreCase(team.getResult().getOutcome())) {
-                                                    m.setResult(team.getCode());
-                                                }
-                                            }
-                                        }
-                                        Collections.sort(scores, Collections.reverseOrder());
-                                        m.setScore(String.join("-", scores));
-                                        
-                                        PronoDay pd = pronoWeek.getPronoDays().stream().filter(pronoDay -> pronoDay.getDate().equals(ldt.format(dayFormatter))).findFirst().orElse(null);
-                                        if (pd != null) {
-                                            if (pd.getMatchs() == null) {
-                                                pd.setMatchs(new ArrayList<>());
-                                            }
-                                            Match localMatch = pd.getMatchs().stream().filter(match -> match.getId().equals(event.getMatch().getId())).findFirst().orElse(null);
-                                            int index = 0;
-                                            for(int i = 0; i < pd.getMatchs().size(); i++) {
-                                                if (pd.getMatchs().get(i).getId().equals(m.getId())) {
-                                                    index = i;
-                                                }
-                                            }
-                                            if (localMatch == null) {
-                                                pd.getMatchs().add(m);
-                                            } else {
-                                                if (!pd.getMatchs().get(index).getTeams().get(0).getCode().equals(m.getTeams().get(0).getCode())) {
-                                                    Collections.reverse(m.getTeams());
-                                                }
-                                                pd.getMatchs().set(index, m);
-                                            }
-                                        } else {
-                                            PronoDay pronoDay = new PronoDay();
-                                            pronoDay.setDate(ldt.format(dayFormatter));
-                                            pronoDay.setDay(pronoWeek.getPronoDays().size() + 1);
-                                            List<Match> dayMatchs = new ArrayList<>();
-                                            dayMatchs.add(m);
-                                            pronoDay.setMatchs(dayMatchs);
-                                            pronoWeek.getPronoDays().add(pronoDay);
-                                        }
-                                        pronoWeekRepository.save(pronoWeek);
+                                LocalDateTime ldt = event.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                                if (league.getTournamentStartDate() != null) {
+                                    LocalDateTime tournamentStartTime = LocalDateTime.parse(league.getTournamentStartDate(), formatter).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                                    if (ldt.isBefore(tournamentStartTime)) {
+                                        continue;
                                     }
-                                };
-                            } else {
-                                // Handle errors or other status codes appropriately
+                                }
+                                String period = getPeriod(ldt.format(formatter));
+                                Optional<PronoWeek> pronoWeekOpt = pronoWeekRepository.findFirstByCompetitionIdAndBlockAndPeriod(league.getId(), event.getBlockName(), period);
+                                PronoWeek pronoWeek;
+                                if (pronoWeekOpt.isEmpty()) {
+                                    pronoWeek = new PronoWeek();
+                                    pronoWeek.setCompetitionId(league.getId());
+                                    LocalDateTime ldtStart = ldt.minusDays(5);
+                                    LocalDateTime ldtEnd = ldt.plusDays(2);
+                                    pronoWeek.setStartDate(ldtStart.format(formatter));
+                                    pronoWeek.setEndDate(ldtEnd.format(formatter));
+                                    pronoWeek.setLockDate(ldt.format(formatter));
+                                    pronoWeek.setBlock(event.getBlockName());
+                                    pronoWeek.setPeriod(period);
+                                    List<PronoDay> pronoDays = new ArrayList<>();
+                                    pronoWeek.setPronoDays(pronoDays);
+                                } else {
+                                    pronoWeek = pronoWeekOpt.get();
+                                }
+                                Match m = event.getMatch();
+                                m.setInProgress("inProgress".equals(event.getState()));
+                                m.setState(event.getState());
+                                m.setDateTime(event.getStartTime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime().format(formatter));
+                                List<String> scores = new ArrayList<>();
+                                for(Team team : m.getTeams()) {
+                                    if (team.getResult() != null) {
+                                        scores.add("" + team.getResult().getGameWins());
+                                        if ("win".equalsIgnoreCase(team.getResult().getOutcome())) {
+                                            m.setResult(team.getCode());
+                                        }
+                                    }
+                                }
+                                Collections.sort(scores, Collections.reverseOrder());
+                                m.setScore(String.join("-", scores));
+                                
+                                PronoDay pd = pronoWeek.getPronoDays().stream().filter(pronoDay -> pronoDay.getDate().equals(ldt.format(dayFormatter))).findFirst().orElse(null);
+                                if (pd != null) {
+                                    if (pd.getMatchs() == null) {
+                                        pd.setMatchs(new ArrayList<>());
+                                    }
+                                    Match localMatch = pd.getMatchs().stream().filter(match -> match.getId().equals(event.getMatch().getId())).findFirst().orElse(null);
+                                    int index = 0;
+                                    for(int i = 0; i < pd.getMatchs().size(); i++) {
+                                        if (pd.getMatchs().get(i).getId().equals(m.getId())) {
+                                            index = i;
+                                        }
+                                    }
+                                    if (localMatch == null) {
+                                        pd.getMatchs().add(m);
+                                    } else {
+                                        if (!pd.getMatchs().get(index).getTeams().get(0).getCode().equals(m.getTeams().get(0).getCode())) {
+                                            Collections.reverse(m.getTeams());
+                                        }
+                                        pd.getMatchs().set(index, m);
+                                    }
+                                } else {
+                                    PronoDay pronoDay = new PronoDay();
+                                    pronoDay.setDate(ldt.format(dayFormatter));
+                                    pronoDay.setDay(pronoWeek.getPronoDays().size() + 1);
+                                    List<Match> dayMatchs = new ArrayList<>();
+                                    dayMatchs.add(m);
+                                    pronoDay.setMatchs(dayMatchs);
+                                    pronoWeek.getPronoDays().add(pronoDay);
+                                }
+                                pronoWeekRepository.save(pronoWeek);
                             }
-                        }
+                        };
+                    } else {
+                        // Handle errors or other status codes appropriately
                     }
                 }
             }
-            
-            private String getPeriod(String date) {
-                String[] s = date.split("-");
-                String period = "";
-                if (s.length > 1) {
-                    period = s[0] + s[1] + String.format("%2s", String.valueOf(Integer.parseInt(s[1]) + 1)).replace(' ', '0');
-                }
-                return period;
-            }
         }
-        
+    }
+    
+    private String getPeriod(String date) {
+        String[] s = date.split("-");
+        String period = "";
+        if (s.length > 1) {
+            period = s[0] + s[1] + String.format("%2s", String.valueOf(Integer.parseInt(s[1]) + 1)).replace(' ', '0');
+        }
+        return period;
+    }
+}

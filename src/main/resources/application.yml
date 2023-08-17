@@ -1,4 +1,7 @@
 spring:
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
   data:
     mongodb:
       uri: ${MONGO_URL:${app.mongodb.default-uri}}
@@ -8,5 +11,5 @@ app:
     default-uri: mongodb://localhost
     default-database: admin
   twitch:
-    client-id: ${TWITCH_CLIENTID}
-    client-secret: ${TWITCH_SECRET}
+    client-id: ${TWITCH_CLIENTID:test}
+    client-secret: ${TWITCH_SECRET:test}

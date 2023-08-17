@@ -34,8 +34,8 @@ public class UserControllerImpl implements UserController {
         User user = userService.getUserByUserId(userId);
         LightUser lightUser = new LightUser();
         lightUser.setDisplayName(user.getDisplayName());
-        lightUser.setFavouriteTeam(user.getFavouriteTeam());
         lightUser.setProfileImageUrl(user.getProfileImageUrl());
+        lightUser.setBadges(user.getBadges());
         return lightUser;
     }
     

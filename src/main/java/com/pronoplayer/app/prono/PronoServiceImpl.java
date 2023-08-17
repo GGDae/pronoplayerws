@@ -86,9 +86,8 @@ public class PronoServiceImpl implements PronoService {
         return null;
     }
     
-    
     @Override
-    @Cacheable("ranking")
+    @Cacheable(cacheNames = "ranking", key = "#groupId.concat('-').concat(#competitionId)")
     public Map<String, Integer> getRanking(String groupId, String competitionId) {
         Map<String, Integer> ranking = new HashMap<>();
         List<Pronostic> pronos = this.getPronoForCompetitionAndGroup(competitionId, groupId);
