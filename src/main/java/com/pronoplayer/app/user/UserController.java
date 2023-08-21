@@ -3,6 +3,8 @@ package com.pronoplayer.app.user;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +20,9 @@ public interface UserController {
 
     @GetMapping("/token")
     public TwitchToken getToken(@RequestParam("code") String code, @RequestParam("redirect_uri") String redirectUri);
+
+    @PostMapping()
+    public User updateUser(@RequestBody User user, @RequestHeader("Authorization") String token, @RequestHeader("Refreshtoken") String refreshToken);
 
     @GetMapping("/{userId}")
     public User getUser(@PathVariable("userId") String userId, @RequestHeader("Authorization") String token, @RequestHeader("Refreshtoken") String refreshToken);

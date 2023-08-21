@@ -29,6 +29,15 @@ public class UserControllerImpl implements UserController {
         }
         throw new UnauthorizedException("Cannot access foreign user data");
     }
+
+    @Override
+    public User updateUser(User user, String token, String refreshToken) {
+        TwitchValidation validation = twitchService.validateToken(token, refreshToken);
+        if (validation != null && validation.getUserId().equals(user.getUserId())) { 
+            return userService.updateUser(user);
+        }
+        throw new UnauthorizedException("Cannot save foreign user data");
+    }
     
     public LightUser getLightUser(String userId) {
         User user = userService.getUserByUserId(userId);

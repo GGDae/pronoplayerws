@@ -5,4 +5,5 @@ import com.pronoplayer.app.bo.User;
 public interface UserService {
     public User getUserByUserId(String userId);
     public User getUserFromToken(String token, String refreshToken);
+    public User updateUser(User user);
 }
