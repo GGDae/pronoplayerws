@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 public class Match {
     public String id;
     private String dateTime;
-    public boolean inProgress;
+    public boolean locked;
     public String result;
     public String score;
     public String state;

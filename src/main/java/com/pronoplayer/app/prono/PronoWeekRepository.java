@@ -19,6 +19,14 @@ public interface PronoWeekRepository extends MongoRepository<PronoWeek, String> 
     public Optional<PronoWeek> findFirstByStartDateBeforeAndEndDateAfterAndCompetitionId(String date, String competitionId);
     
     public Optional<List<PronoWeek>> findByCompetitionId(String competitionId);
-
+    
     public Optional<PronoWeek> findByPronoDaysMatchsId(String matchId);
+    
+    public Optional<PronoWeek> findByPronoDaysMatchsIdAndPronoDaysMatchsDateTime(String matchId, String dateTime);
+    
+    public List<PronoWeek> findByPronoDaysFullDateGreaterThan(String currentDate);
+
+    public List<PronoWeek> findByCompetitionIdAndPronoDaysMatchsTeamsCode(String competitionId, String teamCode);
+
+    public List<PronoWeek> findByPronoDaysMatchsTeamsCode(String teamCode);
 }

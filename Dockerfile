@@ -1,5 +1,5 @@
 # Use a base image with Java and Alpine Linux
-FROM openjdk:17
+FROM openjdk:21
 
 # Set the working directory in the container
 WORKDIR /app

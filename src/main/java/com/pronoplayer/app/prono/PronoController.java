@@ -35,6 +35,10 @@ public interface PronoController {
     @PatchMapping("/{userId}")
     public ResponseEntity<Pronostic> updateScores(@PathVariable("userId") String userId, @RequestBody Pronostic pronostic, @RequestHeader("Authorization") String token, @RequestHeader("refreshtoken") String refreshToken);
 
+    @GetMapping("/{groupId}/{competitionId}/snapshot")
+    public ResponseEntity<Void> generateRankingImage(@PathVariable("groupId") String groupId, @PathVariable("competitionId") String competitionId, @RequestHeader("Authorization") String token, @RequestHeader("refreshtoken") String refreshToken);
+
     @GetMapping("/{groupId}/ranking")
-    public Map<String, Integer> getRanking(@PathVariable("groupId") String groupId, @RequestParam String competitionId);
+    public Map<String, Integer[]> getRanking(@PathVariable("groupId") String groupId, @RequestParam String competitionId);
+
 }

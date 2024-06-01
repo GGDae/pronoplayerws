@@ -25,4 +25,5 @@ public class User {
     private String profileImageUrl;
     private List<Group> groups;
     private List<Badge> badges;
+    private UserDiscord discord;
 }

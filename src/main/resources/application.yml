@@ -13,3 +13,5 @@ app:
   twitch:
     client-id: ${TWITCH_CLIENTID:test}
     client-secret: ${TWITCH_SECRET:test}
+  discord:
+    token: ${DISCORD_TOKEN:test}

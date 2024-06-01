@@ -11,4 +11,6 @@ public interface CompetitionRepository extends MongoRepository<Competition, Stri
     public Optional<Competition> findByNameAndCurrent(String name, boolean current);
     
     public Optional<List<Competition>> findByCurrent(boolean current);
+
+    public Optional<Competition> findByNameAndYearAndSplit(String name, String year, String split);
 }

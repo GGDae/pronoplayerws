@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pronoplayer.app.bo.PronoWeek;
 import com.pronoplayer.app.bo.Pronostic;
+import com.pronoplayer.app.bo.User;
 import com.pronoplayer.app.bo.twitch.TwitchValidation;
+import com.pronoplayer.app.group.GroupService;
 import com.pronoplayer.app.twitch.TwitchService;
+import com.pronoplayer.app.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,8 @@ public class PronoControllerImpl implements PronoController {
     
     private final PronoService pronoService;
     private final TwitchService twitchService;
+    private final UserService userService;
+    private final GroupService groupService;
     
     @Override
     public PronoWeek getPronoByCompetitionIdAndWeek(String competitionId, String week, String period) {
@@ -58,7 +63,20 @@ public class PronoControllerImpl implements PronoController {
     }
     
     @Override
-    public Map<String, Integer> getRanking(String groupId,  String competitionId) {
+    public ResponseEntity<Void> generateRankingImage(String groupId, String competitionId, String token, String refreshToken) {
+        TwitchValidation validation = twitchService.validateToken(token, refreshToken);
+        if (validation != null) {
+            User user = userService.getUserByUserId(validation.getUserId());
+            if (groupService.isAdministrator(user.getUserId(), groupId) || user.isAdmin()) {
+                pronoService.generateRankingImage(groupId, competitionId);
+                return ResponseEntity.status(HttpStatus.OK).body(null);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    }
+    
+    @Override
+    public Map<String, Integer[]> getRanking(String groupId,  String competitionId) {
         return pronoService.getRanking(groupId, competitionId);
     }
 }

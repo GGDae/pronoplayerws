@@ -16,4 +16,12 @@ public interface GroupRepository extends MongoRepository<Group, String> {
         "{$match: {administrators: ?0}}"
     })
     public Optional<List<Group>> findByAdministrators(String userId);
+
+    public List<Group> findByDiscordEnabled(boolean enabled);
+
+    public Group findByDiscordChannelsChannel(String channel);
+
+    public List<Group> findByIsPublic(boolean isPublic);
+
+    public Group findByName(String name);
 }

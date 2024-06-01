@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pronoplayer.app.bo.Group;
+import com.pronoplayer.app.bo.LightGroup;
 import com.pronoplayer.app.bo.twitch.TwitchValidation;
 import com.pronoplayer.app.twitch.TwitchService;
 
@@ -77,6 +78,24 @@ public class GroupControllerImpl implements GroupController {
         }
         return null;
     }
+        
+    @Override
+    public Group addDiscordNotificationForCompetition(String groupId, String competitionId, String userId, String token, String refreshToken) {
+        TwitchValidation validation = twitchService.validateToken(token, refreshToken);
+        if (validation != null && validation.getUserId().equals(userId)) {
+            return groupService.addDiscordNotificationForCompetition(groupId, competitionId, userId);
+        }
+        return null;
+    }
+    
+    @Override
+    public Group removeDiscordNotificationForCompetition(String groupId, String competitionId, String userId, String token, String refreshToken) {
+        TwitchValidation validation = twitchService.validateToken(token, refreshToken);
+        if (validation != null && validation.getUserId().equals(userId)) {
+            return groupService.removeDiscordNotificationForCompetition(groupId, competitionId, userId);
+        }
+        return null;
+    }
     
     @Override
     public ResponseEntity<Map<String, String>> getInviteId(String groupId, String userId, String token, String refreshToken) {
@@ -87,6 +106,11 @@ public class GroupControllerImpl implements GroupController {
             return ResponseEntity.ok(response);
         }
         return null;
+    }
+
+    @Override
+    public List<LightGroup> getPublicGroups() {
+        return groupService.getPublicGroups();
     }
     
 }

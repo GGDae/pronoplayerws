@@ -21,6 +21,8 @@ public class Group {
     @JsonIgnore
     private String inviteId;
     private String name;
+    private boolean isPublic;
     private List<String> competitions;
     private List<String> administrators;
+    private DiscordConfig discord;
 }

@@ -12,6 +12,6 @@ public class SpringCachingConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager("ranking");
+        return new ConcurrentMapCacheManager("ranking", "publicGroups");
     }
 }

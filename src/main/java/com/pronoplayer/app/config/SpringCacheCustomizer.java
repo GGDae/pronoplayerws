@@ -14,6 +14,7 @@ public class SpringCacheCustomizer implements CacheManagerCustomizer<ConcurrentM
     public void customize(ConcurrentMapCacheManager cacheManager) {
         List<String> caches = new ArrayList<>();
         caches.add("ranking");
+        caches.add("publicGroups");
         cacheManager.setCacheNames(caches);
     }
 }
